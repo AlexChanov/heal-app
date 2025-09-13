@@ -6,8 +6,6 @@
 //
 
 import Foundation
-
-// UserListView.swift
 import SwiftUI
 import Supabase
 
@@ -18,27 +16,15 @@ struct UserListView: View {
     @State private var showAlert = false
 
     var body: some View {
-        // NavigationStack убран
         List(profiles) { profile in
+            // Обычный NavigationLink с value - работает с iOS 16+
             NavigationLink(value: profile) {
                 Text(profile.username)
             }
         }
         .navigationTitle("Пользователи")
-        .navigationDestination(for: Profile.self) { profile in
-            ChatView(recipient: profile, currentUserId: session.user.id)
-        }
         .task {
             await fetchProfiles()
-        }
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Выйти") {
-                    Task {
-                        try? await supabase.auth.signOut()
-                    }
-                }
-            }
         }
         .alert("Ошибка", isPresented: $showAlert, presenting: error) { _ in
             Button("OK") {}
@@ -47,7 +33,6 @@ struct UserListView: View {
         }
     }
 
-    // Функция fetchProfiles() остается без изменений
     func fetchProfiles() async {
         do {
             let currentUserId = session.user.id
@@ -63,4 +48,21 @@ struct UserListView: View {
             self.showAlert = true
         }
     }
+}
+
+#Preview {
+    UserListView(session: Session(
+        accessToken: "fake_token",
+        tokenType: "bearer",
+        expiresIn: 3600,
+        expiresAt: 30, refreshToken: "fake_refresh",
+        user: User(
+            id: UUID(),
+            appMetadata: [:],
+            userMetadata: [:],
+            aud: "authenticated",
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+    ))
 }
